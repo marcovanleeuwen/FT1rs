@@ -58,7 +58,7 @@ void testDetectorR5() {
   its.SetAtLeastFake(0);
   //
   its.PrintLayout();
-  its.SolveViaBilloir(0.22, 0.1);
+  its.SolveViaBilloir(0.17, 0.1);
  
   its.MakeStandardPlots(0,2,1, "grsav.root");
   //  return;

@@ -13,7 +13,7 @@ void testDetectorR5() {
   its.AddLayer((char*)"vertex",     0,     0); // dummy vertex for matrix calculation
   // new ideal Pixel properties?
   Double_t x0IB     = 0.001;
-  Double_t x0OB     = 0.005;
+  Double_t x0OB     = 0.001;
   Double_t resRPhiIB     = 0.0001;
   Double_t resZIB        = 0.0001;
   Double_t resRPhiOB     = 0.0005;
@@ -35,6 +35,7 @@ void testDetectorR5() {
   its.AddLayer((char*)"dddY",  95.0 ,  x0OB, resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"dddX",  100.0 ,  x0OB, resRPhiOB, resZOB,eff); 
   */
+ 
   its.AddLayer((char*)"ddd1",  2.3 ,  x0IB, resRPhiIB, resZIB,eff); 
   its.AddLayer((char*)"ddd2",  3.5 ,  x0IB, resRPhiIB, resZIB,eff); 
   its.AddLayer((char*)"ddd3",  5 ,    x0IB, resRPhiIB, resZIB,eff);
@@ -58,7 +59,7 @@ void testDetectorR5() {
   its.SetAtLeastFake(0);
   //
   its.PrintLayout();
-  its.SolveViaBilloir(0.22, 0.1);
+  its.SolveViaBilloir(0.17, 0.1);
  
   its.MakeStandardPlots(0,2,1, "grsav.root");
   //  return;

@@ -894,7 +894,7 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
       printf("No active layer with radius < %f is found, pt = %f\n",rmx, pt);
       return;
     }
-    //      printf("PT=%f 2Rpt=%f Rlr=%f\n",pt,2*rmx,last->radius);
+    printf("PT=%f 2Rpt=%f Rlr=%f\n",pt,2*rmx,last->radius);
     //
     if (!PropagateToR(&probTr,last->radius + kTrackingMargin,bGauss,1)) continue;
     //if (!probTr.PropagateTo(last->radius,bGauss)) continue;

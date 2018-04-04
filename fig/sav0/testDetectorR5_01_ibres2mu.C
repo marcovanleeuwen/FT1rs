@@ -14,8 +14,8 @@ void testDetectorR5() {
   // new ideal Pixel properties?
   Double_t x0IB     = 0.001;
   Double_t x0OB     = 0.005;
-  Double_t resRPhiIB     = 0.0001;
-  Double_t resZIB        = 0.0001;
+  Double_t resRPhiIB     = 0.0002;
+  Double_t resZIB        = 0.0002;
   Double_t resRPhiOB     = 0.0005;
   Double_t resZOB        = 0.0005;
   Double_t eff           = 0.98;
@@ -41,15 +41,15 @@ void testDetectorR5() {
 
   its.AddLayer((char*)"ddd3a",  8,  x0IB, resRPhiOB, resZOB,eff); 
   
-  its.AddLayer((char*)"ddd4",  20.,  x0OB, resRPhiOB, resZOB,eff); 
-  its.AddLayer((char*)"ddd5",  25 ,  x0OB, resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"ddd4",  19.41,  x0OB, resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"ddd5",  24.71 ,  x0OB, resRPhiOB, resZOB,eff); 
 
-  //  its.AddLayer((char*)"ddd6",  35. ,  x0OB, resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"ddd6",  35. ,  x0OB, resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"ddd7",  40. ,  x0OB, resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"ddd8",  55. ,  x0OB, resRPhiOB, resZOB,eff); 
   
-  //  its.AddLayer((char*)"dddZ",  90. ,  x0OB, resRPhiOB, resZOB,eff); 
-  its.AddLayer((char*)"dddY",  80.0 ,  x0OB, resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"dddZ",  90. ,  x0OB, resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"dddY",  95.0 ,  x0OB, resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"dddX",  100.0 ,  x0OB, resRPhiOB, resZOB,eff); 
 
   
@@ -58,7 +58,7 @@ void testDetectorR5() {
   its.SetAtLeastFake(0);
   //
   its.PrintLayout();
-  its.SolveViaBilloir(0.22, 0.1);
+  its.SolveViaBilloir(0.17, 0.1);
  
   its.MakeStandardPlots(0,2,1, "grsav.root");
   //  return;
