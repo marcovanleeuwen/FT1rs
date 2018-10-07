@@ -95,12 +95,13 @@ public:
   
   Float_t GetRadius()   const {return radius;}
   Float_t GetRadL()     const {return radL;}
+  Float_t GetXRho()     const {return xrho;}  
   Float_t GetPhiRes()   const {return phiRes;}
   Float_t GetZRes()     const {return zRes;}
   Float_t GetLayerEff() const {return eff;}
 
   //  void Print() {printf("  r=%3.1lf X0=%1.6lf sigPhi=%1.4lf sigZ=%1.4lf\n",radius,radL,phiRes,zRes); }
-  Float_t radius; Float_t radL; Float_t phiRes; Float_t zRes;   
+  Float_t radius; Float_t radL; Float_t xrho; Float_t phiRes; Float_t zRes;   
   Float_t eff;
   Bool_t isDead;
 
@@ -118,7 +119,7 @@ class DetectorK : public TNamed {
 
   enum {kNptBins = 50}; // less then 400 !!
  
-  void AddLayer(char *name, Float_t radius, Float_t radL, Float_t phiRes=999999, Float_t zRes=999999, Float_t eff=0.95);
+  void AddLayer(char *name, Float_t radius, Float_t radL, Float_t xrho=0., Float_t phiRes=999999, Float_t zRes=999999, Float_t eff=0.95);
   void KillLayer(char *name);
   void SetRadius(char *name, Float_t radius);
   void SetRadiationLength(char *name, Float_t radL);
@@ -149,6 +150,8 @@ class DetectorK : public TNamed {
   Float_t GetLhcUPCscale() const { return fLhcUPCscale; }
   void SetParticleMass(Float_t particleMass) {fParticleMass = particleMass; }
   Float_t GetParticleMass() const { return fParticleMass; }
+  void SetMaxSnp(Float_t snp = 0.85) {fMaxSnp = snp; }
+  Float_t GetMaxSnp() const {return fMaxSnp;}
   void SetIntegrationTime(Float_t integrationTime) {fIntegrationTime = integrationTime; }
   Float_t GetIntegrationTime() const { return fIntegrationTime; }
   void SetMaxRadiusOfSlowDetectors(Float_t maxRadiusSlowDet) {fMaxRadiusSlowDet =  maxRadiusSlowDet; }
@@ -240,6 +243,7 @@ class DetectorK : public TNamed {
   Float_t fConfLevel;           // Confidence Level for the tracking
   Float_t fAvgRapidity;         // rapidity of the track (= mean)
   Float_t fParticleMass;        // Particle used for tracking. Standard: mass of pion
+  Float_t fMaxSnp; // max allowed snp
   Double_t fMaxRadiusSlowDet;   // Maximum radius for slow detectors.  Fast detectors 
                                 // and only fast detectors reside outside this radius.
 

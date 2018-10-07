@@ -84,7 +84,8 @@ DetectorK::DetectorK()
   fIntegrationTime(0.02), // in ms
   fConfLevel(0.0027),      // 0.27 % -> 3 sigma confidence
   fAvgRapidity(0.45),      // Avg rapidity, MCS calc is a function of crossing angle
-  fParticleMass(0.140),    // Standard: pion mass 
+  fParticleMass(0.140),    // Standard: pion mass
+  fMaxSnp(0.85),
   fMaxRadiusSlowDet(10.),
   fAtLeastHits(-1),     // if -1, then require hit on all ITS layers
   fAtLeastCorr(-1),     // if -1, then correct hit on all ITS layers
@@ -99,7 +100,7 @@ DetectorK::DetectorK()
   // default constructor
   //
   //  fLayers = new TObjArray();
-  
+  SetMaxSnp();
 }
 
 DetectorK::DetectorK(char *name, char *title)
@@ -113,6 +114,7 @@ DetectorK::DetectorK(char *name, char *title)
     fConfLevel(0.0027),      // 0.27 % -> 3 sigma confidence
     fAvgRapidity(0.45),      // Avg rapidity, MCS calc is a function of crossing angle
     fParticleMass(0.140),     // Standard: pion mass
+    fMaxSnp(0.85),
     fMaxRadiusSlowDet(10.),
     fAtLeastHits(-1),     // if -1, then require hit on all ITS layers
     fAtLeastCorr(-1),     // if -1, then correct hit on all ITS layers
@@ -127,6 +129,7 @@ DetectorK::DetectorK(char *name, char *title)
   // default constructor, that set the name and title
   //
   //  fLayers = new TObjArray();
+  SetMaxSnp();
 }
 DetectorK::~DetectorK() { // 
   // virtual destructor
@@ -134,7 +137,7 @@ DetectorK::~DetectorK() { //
   //  delete fLayers;
 }
 
-void DetectorK::AddLayer(char *name, Float_t radius, Float_t radL, Float_t phiRes, Float_t zRes, Float_t eff) {
+void DetectorK::AddLayer(char *name, Float_t radius, Float_t radL, Float_t xrho, Float_t phiRes, Float_t zRes, Float_t eff) {
   //
   // Add additional layer to the list of layers (ordered by radius)
   // 
@@ -145,6 +148,7 @@ void DetectorK::AddLayer(char *name, Float_t radius, Float_t radL, Float_t phiRe
     newLayer = new CylLayerK(name);
     newLayer->radius = radius;
     newLayer->radL = radL;
+    newLayer->xrho = xrho;
     newLayer->phiRes = phiRes;
     newLayer->zRes = zRes;
     newLayer->eff = eff;
@@ -219,11 +223,13 @@ void DetectorK::SetRadius(char *name, Float_t radius) {
   } else {
       
     Float_t tmpRadL  = tmp->radL;
+    Float_t tmpXRho  = tmp->xrho;
     Float_t tmpPhiRes = tmp->phiRes;
     Float_t tmpZRes = tmp->zRes;
+    
 
     RemoveLayer(name); // so that the ordering is correct
-    AddLayer(name,radius,tmpRadL,tmpPhiRes,tmpZRes);
+    AddLayer(name,radius,tmpRadL,tmpXRho,tmpPhiRes,tmpZRes);
   }
 }
 
@@ -440,7 +446,7 @@ void DetectorK::PrintLayout(Bool_t full) {
   printf("Detector %s: \"%s\"\n",GetName(),GetTitle());
   
   if (fLayers.GetEntries()>0) 
-    printf("  Name \t\t r [cm] \t  X0 \t  phi & z res [um] layerEff \n");
+    printf("  Name \t\t r [cm] \t  X0 \t xRho \t  phi & z res [um] layerEff \n");
 
   CylLayerK *tmp = 0;
   for (Int_t i = 0; i<fLayers.GetEntries(); i++) {
@@ -450,8 +456,8 @@ void DetectorK::PrintLayout(Bool_t full) {
     TString name(tmp->GetName());
     if (!full && !IsITSLayer(name) && !name.Contains("_0")) continue;
 
-    printf("%d. %s \t %03.2f   \t%1.4f\t  ",i,
- 	   tmp->GetName(), tmp->radius, tmp->radL);
+    printf("%d. %s \t %03.2f   \t%1.4f\t%1.4f\t  ",i,
+ 	   tmp->GetName(), tmp->radius, tmp->radL, tmp->xrho);
     if (tmp->phiRes==RIDICULOUS) 
       printf("  -  ");
     else
@@ -519,8 +525,8 @@ void DetectorK::AddTPC(Float_t phiResMean, Float_t zResMean, Int_t skip) {
   // skip=1: Use every padrow, skip=2: Signal in every 2nd padrow 
 
 
-  AddLayer((char*)"tpcIFC",   77.8,0.01367); // Inner Field cage
-  AddLayer((char*)"tpcOFC",   254.0,0.01367); // Outer Field cage
+  AddLayer((char*)"tpcIFC",   77.8, 0.01367); // Inner Field cage
+  AddLayer((char*)"tpcOFC",   254.0, 0.01367); // Outer Field cage
 
   // % Radiation Lengths ... Average per TPC row  (i.e. total/159 )
   const int kNPassiveBound = 2;
@@ -720,7 +726,8 @@ double DetectorK::UpcHitDensity(Double_t radius)
 { 
   // QED electrons ...
 
-  Double_t mUPCelectrons ;                                 ;  
+  Double_t mUPCelectrons = 0;
+  return mUPCelectrons ;
   //  mUPCelectrons =  fLhcUPCscale * (1.23 - radius/6.5)      ;  // Fit to Kai Schweda summary tables at RHIC * 'scale' for LHC
   mUPCelectrons = fLhcUPCscale*5456/(radius*radius)/dNdEtaMinB;      // Fit to 'Rossegger,Sadovsky'-Alice simulation
   if ( mUPCelectrons < 0 ) mUPCelectrons =  0.0             ;  // UPC electrons fall off quickly and don't go to large R
@@ -766,7 +773,7 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
   const float kTrackingMargin = 0.1;
 
   static AliExternalTrackParam probTr;   // track to propagate
-  probTr.SetUseLogTermMS(kTRUE);
+  probTr.SetUseLogTermMS(kFALSE);
 
 
   Int_t nPt = kNptBins;
@@ -888,15 +895,36 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
     for (Int_t j=fLayers.GetEntries(); j--;) { 
       CylLayerK *l = (CylLayerK*) fLayers.At(j);
       //	printf("at lr %d r: %f vs %f, pt:%f\n",j,l->radius, 2*rmx-2.*kTrackingMargin, pt);
-      if (!(l->isDead) && (l->radius < SQRT2*rmx-5.)) {lastActiveLayer = j; last = l; break;}
+      if (!(l->isDead) && (l->radius < 2*rmx-5.)) {lastActiveLayer = j; last = l; break;}
     }
     if (lastActiveLayer<0) {
       printf("No active layer with radius < %f is found, pt = %f\n",rmx, pt);
-      return;
+      continue; //return;
     }
     printf("PT=%f 2Rpt=%f Rlr=%f\n",pt,2*rmx,last->radius);
     //
-    if (!PropagateToR(&probTr,last->radius + kTrackingMargin,bGauss,1)) continue;
+    float prepLrOK[lastActiveLayer+1];
+    for (int il=lastActiveLayer+1;il--;) prepLrOK[il] = 0;
+    int lastReached = 0;
+    for (int il=1;il<=lastActiveLayer;il++) {
+      AliExternalTrackParam probTrLast(probTr);
+      CylLayerK *lr = (CylLayerK*) fLayers.At(il);
+      if (!PropagateToR(&probTrLast,lr->radius,bGauss,1)) break;
+      if (!probTrLast.CorrectForMeanMaterial(lr->radL, -lr->xrho, fParticleMass , kTRUE)) break;
+      if (lr->radius>1e-3 && !lr->isDead &&
+	  ( !probTrLast.Rotate(probTrLast.PhiPos()) || TMath::Abs( probTrLast.GetSnp() )>fMaxSnp) ) {
+	break;
+      }
+      probTr = probTrLast;
+      lastReached = il;
+      prepLrOK[il] = 1.; // flag successfully passed layer
+    }
+    if ( ((CylLayerK*)fLayers.At(lastReached))->radius < fMinRadTrack) continue;
+    if (!PropagateToR(&probTr,probTr.GetX() + kTrackingMargin,bGauss,1)) continue;
+    if (probTr.GetX()<fMinRadTrack) continue;
+    lastActiveLayer = lastReached;
+    
+    //    if (!PropagateToR(&probTr,last->radius + kTrackingMargin,bGauss,1)) continue;
     //if (!probTr.PropagateTo(last->radius,bGauss)) continue;
     // reset cov.matrix
     const double kLargeErr2Coord = 100*100;
@@ -923,6 +951,7 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
     
     CylLayerK *layer = 0;
     //      probTr.Print();
+    Bool_t skipPTBin = kFALSE;
     for (Int_t j=lastActiveLayer+1; j--;) {  // Layer loop
 
       layer = (CylLayerK*)fLayers.At(j);
@@ -933,7 +962,13 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
       Bool_t isVertex = name.Contains("vertex");
       Bool_t isFirstActive = j == firstActiveLayer;
       //
-      if (!PropagateToR(&probTr,layer->radius,bGauss,-1)) exit(1);
+      if (!PropagateToR(&probTr,layer->radius,bGauss,-1)) {
+	printf("Failed inward propagation for bin %d pT=%.2f at lr%d of r=%.2f\n",i,pt,j,layer->radius);
+	probTr.Print();
+	skipPTBin = kTRUE;
+	fEfficiency[i] = 0.0 ;
+	break; //exit(1);
+      }
       //	if (!probTr.PropagateTo(last->radius,bGauss)) exit(1);	//
       // rotate to frame with X axis normal to the surface
       if (!isVertex) {
@@ -944,7 +979,7 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
 	if (!probTr.Rotate(phi)) {
 	  printf("Failed to rotate to the frame (phi:%+.3f)of layer at %.2f at XYZ: %+.3f %+.3f %+.3f (pt=%+.3f)\n",
 		 phi,layer->radius,pos[0],pos[1],pos[2],pt);
-	    
+	  
 	  probTr.Print();
 	  exit(1);
 	}
@@ -962,7 +997,7 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
       double meas[2] = {probTr.GetY(),probTr.GetZ()};
       double measErr2[3] = {layer->phiRes*layer->phiRes,0,layer->zRes*layer->zRes};
       //
-
+      
       if (!probTr.Update(meas,measErr2)) {
 	printf("Failed to update the track by measurement {%.3f,%3f} err {%.3e %.3e %.3e}\n",
 	       meas[0],meas[1], measErr2[0],measErr2[1],measErr2[2]);
@@ -970,7 +1005,7 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
 	exit(1);
       }
       //printf("AfterUpdate "); probTr.Print();
-
+      
       if (isFirstActive) {
 	deltaPoverP =  TMath::Sqrt(probTr.GetSigma1Pt2())/TMath::Abs(probTr.GetSigned1Pt());
 	//printf("<<<  #%2d pt %f, q/pt:%e err2 %e relres %f\n",i,pt,probTr.GetSigned1Pt() ,probTr.GetSigma1Pt2(),deltaPoverP);
@@ -978,7 +1013,7 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
       }       
       // correct for materials of this layer
       // note: if apart from MS we want also e.loss correction, the density*length should be provided as 2nd param
-      if (!probTr.CorrectForMeanMaterial(layer->radL, 0, fParticleMass , kTRUE)) {
+      if (!probTr.CorrectForMeanMaterial(layer->radL, layer->xrho, fParticleMass , kTRUE)) {
 	printf("Failed to apply material correction, X/X0=%.4f\n",layer->radL);
 	probTr.Print();
 	exit(1);
@@ -986,7 +1021,11 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
       //      printf("AfterCorr "); probTr.Print();
       //
     }
-    
+
+    if (skipPTBin) {
+      printf("Skipping pT=%.2f bin%d\n",pt,i);
+      continue;
+    }
     // Pattern recognition is done .... save values like vertex resolution etc.
 
     // Convert the Convariance matrix parameters into physical quantities
@@ -1328,7 +1367,7 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
       }
 
       if (print == 1 && fTransMomenta[i] >= selPt && printOnce == 1) {
-	printOnce = 0 ;
+	if (pt>0.25) printOnce = 0 ;
 	printf("\n")  ;
       }
     }      
@@ -2107,12 +2146,12 @@ void DetectorK::MakeAliceCurrent(Int_t AlignResiduals, Bool_t flagTPC) {
   
   if (AlignResiduals==0) {
 
-    AddLayer((char*)"spd1", 3.9, 0.0114, 0.0012, 0.0130);
-    AddLayer((char*)"spd2", 7.6, 0.0114, 0.0012, 0.0130);
-    AddLayer((char*)"sdd1",15.0, 0.0113, 0.0035, 0.0025);
-    AddLayer((char*)"sdd2",23.9, 0.0126, 0.0035, 0.0025);
-    AddLayer((char*)"ssd1",38.0, 0.0083, 0.0020, 0.0830);
-    AddLayer((char*)"ssd2",43.0, 0.0086, 0.0020, 0.0830);
+    AddLayer((char*)"spd1", 3.9, 0.0114, 0, 0.0012, 0.0130);
+    AddLayer((char*)"spd2", 7.6, 0.0114, 0, 0.0012, 0.0130);
+    AddLayer((char*)"sdd1",15.0, 0.0113, 0, 0.0035, 0.0025);
+    AddLayer((char*)"sdd2",23.9, 0.0126, 0, 0.0035, 0.0025);
+    AddLayer((char*)"ssd1",38.0, 0.0083, 0, 0.0020, 0.0830);
+    AddLayer((char*)"ssd2",43.0, 0.0086, 0, 0.0020, 0.0830);
 
   } else if (AlignResiduals==1) {
 
@@ -2121,17 +2160,17 @@ void DetectorK::MakeAliceCurrent(Int_t AlignResiduals, Bool_t flagTPC) {
     // itsRecoParam->SetClusterMisalErrorYBOn(0.0010,0.0030,0.0500,0.0500,0.0020,0.0020);  // [cm]
     // itsRecoParam->SetClusterMisalErrorZBOn(0.0050,0.0050,0.0050,0.0050,0.1000,0.1000);
 
-    AddLayer((char*)"spd1", 3.9, 0.0114, TMath::Sqrt(0.0012*0.0012+0.0010*0.0010), 
+    AddLayer((char*)"spd1", 3.9, 0.0114, 0, TMath::Sqrt(0.0012*0.0012+0.0010*0.0010), 
 	     TMath::Sqrt(0.0130*0.0130+0.0050*0.0050));
-    AddLayer((char*)"spd2", 7.6, 0.0114, TMath::Sqrt(0.0012*0.0012+0.0030*0.0030),
+    AddLayer((char*)"spd2", 7.6, 0.0114, 0, TMath::Sqrt(0.0012*0.0012+0.0030*0.0030),
 	     TMath::Sqrt(0.0130*0.0130+0.0050*0.0050));
-    AddLayer((char*)"sdd1",15.0, 0.0113, TMath::Sqrt(0.0035*0.0035+0.0500*0.0500),
+    AddLayer((char*)"sdd1",15.0, 0.0113, 0, TMath::Sqrt(0.0035*0.0035+0.0500*0.0500),
 	     TMath::Sqrt(0.0025*0.0025+0.0050*0.0050));
-    AddLayer((char*)"sdd2",23.9, 0.0126, TMath::Sqrt(0.0035*0.0035+0.0500*0.0500),
+    AddLayer((char*)"sdd2",23.9, 0.0126, 0, TMath::Sqrt(0.0035*0.0035+0.0500*0.0500),
 	     TMath::Sqrt(0.0025*0.0025+0.0050*0.0050));
-    AddLayer((char*)"ssd1",38.0, 0.0083, TMath::Sqrt(0.0020*0.0020+0.0020*0.0020), 
+    AddLayer((char*)"ssd1",38.0, 0.0083, 0, TMath::Sqrt(0.0020*0.0020+0.0020*0.0020), 
 	     TMath::Sqrt(0.0830*0.0830+0.1000*0.1000));
-    AddLayer((char*)"ssd2",43.0, 0.0086, TMath::Sqrt(0.0020*0.0020+0.0020*0.0020),
+    AddLayer((char*)"ssd2",43.0, 0.0086, 0, TMath::Sqrt(0.0020*0.0020+0.0020*0.0020),
 	     TMath::Sqrt(0.0830*0.0830+0.1000*0.1000));   
     
   } else if (AlignResiduals==2) {
@@ -2144,17 +2183,17 @@ void DetectorK::MakeAliceCurrent(Int_t AlignResiduals, Bool_t flagTPC) {
     //  the ITS modules are misalignment with small gaussian smearings with
     //  sigmarphi ~ 8, 10, 10 micron in SPD, SDD, SSD
     
-    AddLayer((char*)"spd1", 3.9, 0.0114, TMath::Sqrt(0.0012*0.0012+0.0010*0.0010+0.0008*0.0008), 
+    AddLayer((char*)"spd1", 3.9, 0.0114, 0, TMath::Sqrt(0.0012*0.0012+0.0010*0.0010+0.0008*0.0008), 
 	     TMath::Sqrt(0.0130*0.0130+0.0050*0.0050));
-    AddLayer((char*)"spd2", 7.6, 0.0114, TMath::Sqrt(0.0012*0.0012+0.0030*0.0030+0.0008*0.0008),
+    AddLayer((char*)"spd2", 7.6, 0.0114, 0, TMath::Sqrt(0.0012*0.0012+0.0030*0.0030+0.0008*0.0008),
 	     TMath::Sqrt(0.0130*0.0130+0.0050*0.0050));
-    AddLayer((char*)"sdd1",15.0, 0.0113, TMath::Sqrt(0.0035*0.0035+0.0500*0.0500+0.0010*0.0010),
+    AddLayer((char*)"sdd1",15.0, 0.0113, 0, TMath::Sqrt(0.0035*0.0035+0.0500*0.0500+0.0010*0.0010),
 	     TMath::Sqrt(0.0025*0.0025+0.0050*0.0050));
-    AddLayer((char*)"sdd2",23.9, 0.0126, TMath::Sqrt(0.0035*0.0035+0.0500*0.0500+0.0010*0.0010),
+    AddLayer((char*)"sdd2",23.9, 0.0126, 0, TMath::Sqrt(0.0035*0.0035+0.0500*0.0500+0.0010*0.0010),
 	     TMath::Sqrt(0.0025*0.0025+0.0050*0.0050));
-    AddLayer((char*)"ssd1",38.0, 0.0083, TMath::Sqrt(0.0020*0.0020+0.0020*0.0020+0.0010*0.0010), 
+    AddLayer((char*)"ssd1",38.0, 0.0083, 0, TMath::Sqrt(0.0020*0.0020+0.0020*0.0020+0.0010*0.0010), 
 	     TMath::Sqrt(0.0830*0.0830+0.1000*0.1000));
-    AddLayer((char*)"ssd2",43.0, 0.0086, TMath::Sqrt(0.0020*0.0020+0.0020*0.0020+0.0010*0.0010),
+    AddLayer((char*)"ssd2",43.0, 0.0086, 0, TMath::Sqrt(0.0020*0.0020+0.0020*0.0020+0.0010*0.0010),
 	     TMath::Sqrt(0.0830*0.0830+0.1000*0.1000)); 
 
   } else {
@@ -2163,17 +2202,17 @@ void DetectorK::MakeAliceCurrent(Int_t AlignResiduals, Bool_t flagTPC) {
     //  sigmarphi ~ 8, 10, 10 micron in SPD, SDD, SSD
     //  unknown in Z ????
 
-    AddLayer((char*)"spd1", 3.9, 0.0114, TMath::Sqrt(0.0012*0.0012+0.0008*0.0008), 
+    AddLayer((char*)"spd1", 3.9, 0.0114, 0, TMath::Sqrt(0.0012*0.0012+0.0008*0.0008), 
 	     TMath::Sqrt(0.0130*0.0130+0.000*0.000));
-    AddLayer((char*)"spd2", 7.6, 0.0114, TMath::Sqrt(0.0012*0.0012+0.0008*0.0008),
+    AddLayer((char*)"spd2", 7.6, 0.0114, 0, TMath::Sqrt(0.0012*0.0012+0.0008*0.0008),
 	     TMath::Sqrt(0.0130*0.0130+0.000*0.000));
-    AddLayer((char*)"sdd1",15.0, 0.0113, TMath::Sqrt(0.0035*0.0035+0.0010*0.0010),
+    AddLayer((char*)"sdd1",15.0, 0.0113, 0, TMath::Sqrt(0.0035*0.0035+0.0010*0.0010),
 	     TMath::Sqrt(0.0025*0.0025+0.000*0.000));
-    AddLayer((char*)"sdd2",23.9, 0.0126, TMath::Sqrt(0.0035*0.0035+0.0010*0.0010),
+    AddLayer((char*)"sdd2",23.9, 0.0126, 0, TMath::Sqrt(0.0035*0.0035+0.0010*0.0010),
 	     TMath::Sqrt(0.0025*0.0025+0.000*0.000));
-    AddLayer((char*)"ssd1",38.0, 0.0083, TMath::Sqrt(0.0020*0.0020+0.0010*0.0010), 
+    AddLayer((char*)"ssd1",38.0, 0.0083, 0, TMath::Sqrt(0.0020*0.0020+0.0010*0.0010), 
 	     TMath::Sqrt(0.0830*0.0830+0.000*0.000));
-    AddLayer((char*)"ssd2",43.0, 0.0086, TMath::Sqrt(0.0020*0.0020+0.0010*0.0010),
+    AddLayer((char*)"ssd2",43.0, 0.0086, 0, TMath::Sqrt(0.0020*0.0020+0.0010*0.0010),
 	     TMath::Sqrt(0.0830*0.0830+0.000*0.000));   
     
     

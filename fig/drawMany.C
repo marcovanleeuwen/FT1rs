@@ -26,7 +26,7 @@ void drawMany(HistoManager* hm, Int_t color=0, Int_t linewidth=0, Bool_t same=kF
   //
   c1->cd(2);
   hm->GetGraph(1)->Draw(opt.Data());
-  hm->GetGraph(1)->SetMinimum(0.1);
+  hm->GetGraph(1)->SetMinimum(0.5);
   hm->GetGraph(1)->SetMaximum(3.);
   
   gPad->SetLogy();  gPad->SetLogx();
