@@ -9,7 +9,7 @@ void testDetectorR5(float mass = 0.140, float ptmin = 0.1) {
     gROOT->ProcessLine(".L DetectorK.cxx+");
   }
   DetectorK its("ALICE","ITS");
-  its.SetBField(1.);
+  its.SetBField(0.2);
   // new ideal Pixel properties?
   Double_t x0IB     = 0.0005;
   Double_t x0OB     = 0.005;
@@ -40,7 +40,7 @@ void testDetectorR5(float mass = 0.140, float ptmin = 0.1) {
   */
   its.AddLayer((char*)"vertex",     0,     0); // dummy vertex for matrix calculation
 
-  //  its.AddLayer((char*)"bpipe",1.6.0,0.0014, 9.24e-02 ); // 500 mum Be | nominal R5?
+  its.AddLayer((char*)"bpipe",1.6.0,0.0014, 9.24e-02 ); // 500 mum Be | nominal R5?
   //its.AddLayer((char*)"bpipe",2.0.0, 0.0022, 1.478e-1); // 800 mum Be
 
   /*
@@ -51,7 +51,7 @@ void testDetectorR5(float mass = 0.140, float ptmin = 0.1) {
   ///*
   its.AddLayer((char*)"ddd1",  1.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff); 
   its.AddLayer((char*)"ddd2",  2.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
-  its.AddLayer((char*)"bpipe", 2.9 ,  0.0014, 9.24e-02 ); // 500 mum Be
+  //its.AddLayer((char*)"bpipe", 2.9 ,  0.0014, 9.24e-02 ); // 500 mum Be
   its.AddLayer((char*)"ddd3",  3.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
   // */
   its.AddLayer((char*)"ddd3a",  8,  x0IB, xrhoIB,  resRPhiOB, resZOB,eff); 

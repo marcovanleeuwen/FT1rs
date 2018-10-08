@@ -910,7 +910,16 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
       AliExternalTrackParam probTrLast(probTr);
       CylLayerK *lr = (CylLayerK*) fLayers.At(il);
       if (!PropagateToR(&probTrLast,lr->radius,bGauss,1)) break;
-      if (!probTrLast.CorrectForMeanMaterial(lr->radL, -lr->xrho, fParticleMass , kTRUE)) break;
+      if (!probTrLast.CorrectForMeanMaterial(lr->radL, 0, fParticleMass , kTRUE)) break;
+
+      if (lr->xrho>0) { // correct in small steps
+	bool elossOK = kTRUE;
+	for (int ise=10;ise--;) {
+	  if (!probTrLast.CorrectForMeanMaterial(0, -lr->xrho/10, fParticleMass , kTRUE)) {elossOK = kFALSE; break;}
+	}
+	if (!elossOK) break;
+      }
+      
       if (lr->radius>1e-3 && !lr->isDead &&
 	  ( !probTrLast.Rotate(probTrLast.PhiPos()) || TMath::Abs( probTrLast.GetSnp() )>fMaxSnp) ) {
 	break;
@@ -1013,11 +1022,21 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
       }       
       // correct for materials of this layer
       // note: if apart from MS we want also e.loss correction, the density*length should be provided as 2nd param
-      if (!probTr.CorrectForMeanMaterial(layer->radL, layer->xrho, fParticleMass , kTRUE)) {
+      if (!probTr.CorrectForMeanMaterial(layer->radL, 0, fParticleMass , kTRUE)) {
 	printf("Failed to apply material correction, X/X0=%.4f\n",layer->radL);
 	probTr.Print();
 	exit(1);
       }
+      if (layer->xrho>0) { // correct in small steps
+	for (int ise=10;ise--;) {
+	  if (!probTr.CorrectForMeanMaterial(0, layer->xrho/10, fParticleMass , kTRUE)) {
+	    printf("Failed to apply material correction, xrho=%.4f\n",layer->xrho);
+	    probTr.Print();
+	    exit(1);
+	  }
+	}
+      }
+      
       //      printf("AfterCorr "); probTr.Print();
       //
     }
@@ -1221,6 +1240,17 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
 	  probTr.Print();
 	  exit(1);
 	}
+	if (layer->xrho>0) { // correct in small steps
+	  for (int ise=10;ise--;) {
+	    if (!probTr.CorrectForMeanMaterial(0, -layer->xrho/10, fParticleMass , kTRUE)) {
+	      printf("Failed to apply material correction, xrho=%.4f\n",-layer->xrho);
+	      probTr.Print();
+	      exit(1);
+	    }
+	  }
+	}
+
+	
 	//printf("AfterCorr "); probTr.Print();
       }
 
@@ -2527,6 +2557,7 @@ Bool_t DetectorK::PropagateToR(AliExternalTrackParam* trc, double r, double b, i
     printf("Track with pt=%f cannot reach radius %f\n",trc->Pt(),r);
     return kFALSE;
   }
+    
   Double_t xpos = trc->GetX();
   dir = (xpos<xToGo) ? 1:-1;
   while ( (xToGo-xpos)*dir > kEpsilon) {
