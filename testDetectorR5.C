@@ -4,7 +4,7 @@
 
 //void standardPlots() {
 
-void testDetectorR5(float mass = 0.140, float ptmin = 0.1) {
+void testDetectorR5(float mass = 0.0005, float ptmin = 0.05) {
   if (gClassTable->GetID("DetectorK")<0) {
     gROOT->ProcessLine(".L DetectorK.cxx+");
   }
@@ -54,7 +54,7 @@ void testDetectorR5(float mass = 0.140, float ptmin = 0.1) {
   //its.AddLayer((char*)"bpipe", 2.9 ,  0.0014, 9.24e-02 ); // 500 mum Be
   its.AddLayer((char*)"ddd3",  3.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
   // */
-  its.AddLayer((char*)"ddd3a",  8,  x0IB, xrhoIB,  resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"ddd3a",  8,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
   
   its.AddLayer((char*)"ddd4",  20.,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"ddd5",  25 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
@@ -74,7 +74,7 @@ void testDetectorR5(float mass = 0.140, float ptmin = 0.1) {
   //
   its.SetAvgRapidity(0.5);
   its.SetParticleMass(mass);
-  its.SetMinRadTrack(55.);
+  its.SetMinRadTrack(55);//100.);
   //
   its.PrintLayout();
   its.SolveViaBilloir(0.2, ptmin);

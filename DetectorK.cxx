@@ -92,7 +92,7 @@ DetectorK::DetectorK()
   fAtLeastFake(1),       // if at least x fakes, track is considered fake ...
   fMaxSeedRadius(50000),
   fptScale(10.),
-  fdNdEtaCent(2300),
+  fdNdEtaCent(2200),
   kDetLayer(-1),
   fMinRadTrack(132.)
 {
