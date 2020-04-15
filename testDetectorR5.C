@@ -40,7 +40,7 @@ void testDetectorR5(float mass = 0.0005, float ptmin = 0.05) {
   */
   its.AddLayer((char*)"vertex",     0,     0); // dummy vertex for matrix calculation
 
-  its.AddLayer((char*)"bpipe",1.6.0,0.0014, 9.24e-02 ); // 500 mum Be | nominal R5?
+  its.AddLayer((char*)"bpipe",1.6, 0.0014, 9.24e-02 ); // 500 mum Be | nominal R5?
   //its.AddLayer((char*)"bpipe",2.0.0, 0.0022, 1.478e-1); // 800 mum Be
 
   /*
