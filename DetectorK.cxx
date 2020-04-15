@@ -1478,7 +1478,8 @@ Bool_t DetectorK::SolveTrack(TrackSol& ts) {
   //
   // find max layer this track can reach
   double rmx = (TMath::Abs(fBField)>1e-5) ?  pt*100./(0.3*TMath::Abs(fBField)) : 9999;
-  if (2*rmx-5. < minRad && minRad>0) {
+  //  if (2*rmx-5. < minRad && minRad>0) {
+  if ( minRad/(2.*rmx)>fMaxSnp-0.01 && minRad>0) {
     printf("Track of pt=%.3f cannot be tracked to min. r=%f\n",pt,minRad);
     return kFALSE;
   }
@@ -1533,7 +1534,7 @@ Bool_t DetectorK::SolveTrack(TrackSol& ts) {
     TString name(layer->GetName());
     Bool_t isVertex = name.Contains("vertex");
     //
-    if (!PropagateToR(&probTr,layer->radius,bGauss,-1)) exit(1);
+    if (!PropagateToR(&probTr,layer->radius,bGauss,-1)) return kFALSE; //exit(1);
     //	if (!probTr.PropagateTo(last->radius,bGauss)) exit(1);	//
     // rotate to frame with X axis normal to the surface
     if (!isVertex) {
@@ -1618,7 +1619,7 @@ Bool_t DetectorK::SolveTrack(TrackSol& ts) {
     layer = (CylLayerK*)fLayers.At(j);
     TString name(layer->GetName());
     Bool_t isVertex = name.Contains("vertex");
-    if (!PropagateToR(&probTr, layer->radius,bGauss,1)) exit(1);
+    if (!PropagateToR(&probTr, layer->radius,bGauss,1)) return kFALSE;//exit(1);
     //
     if (!isVertex) {
       // rotate to frame with X axis normal to the surface
@@ -2548,42 +2549,53 @@ Bool_t DetectorK::PropagateToR(AliExternalTrackParam* trc, double r, double b, i
   double rr = r*r;
   int iter = 0;
   const double kTiny = 1e-6;
-  const Double_t kEpsilon = 0.00001;
+  const Double_t kEpsilonX = 0.00001, kEpsilonR = 0.01;
   //
   if (verboseR) {
     printf("Prop to %f d=%d  ",r,dir); trc->Print();
   }
-  if (!GetXatLabR(trc, r ,xToGo, b, dir)) {
-    printf("Track with pt=%f cannot reach radius %f\n",trc->Pt(),r);
-    return kFALSE;
-  }
-    
-  Double_t xpos = trc->GetX();
-  dir = (xpos<xToGo) ? 1:-1;
-  while ( (xToGo-xpos)*dir > kEpsilon) {
-    Double_t step = dir*TMath::Min(TMath::Abs(xToGo-xpos), maxStep);
-    Double_t x    = xpos+step;
-    Double_t xyz0[3],xyz1[3],param[7];
-    trc->GetXYZ(xyz0);   //starting global position
-    if (!trc->PropagateTo(x,b))  return kFALSE;
-    xpos = trc->GetX();
-  }  
-  //
-  double rreal = TMath::Sqrt(xpos*xpos+trc->GetY()*trc->GetY());
-  //  printf("Rtgt=%f Rreal=%f\n",r,rreal);
-  if (r>0.5) {
-    if (!trc->Rotate(trc->PhiPos())) {
-      printf("Failed to rotate to layer local frame %f | ",trc->PhiPos()); trc->Print();
-      return kFALSE;
-    }
-  }
-  else {
-    if (!trc->Rotate(trc->Phi())) {
-      printf("Failed to rotate to track local frame %f | ",trc->Phi()); trc->Print();
-      return kFALSE;
-    }
-  }
+  while(1) {
 
+    if (!GetXatLabR(trc, r ,xToGo, b, dir)) {
+      printf("Track with pt=%f cannot reach radius %f\n",trc->Pt(),r);
+      return kFALSE;
+    }
+  
+    Double_t xpos = trc->GetX();
+    dir = (xpos<xToGo) ? 1:-1;
+    while ( (xToGo-xpos)*dir > kEpsilonX) {
+      Double_t step = dir*TMath::Min(TMath::Abs(xToGo-xpos), maxStep);
+      Double_t x    = xpos+step;
+      //      Double_t xyz0[3],xyz1[3],param[7];
+      //      trc->GetXYZ(xyz0);   //starting global position
+      if (!trc->PropagateTo(x,b))  return kFALSE;
+      xpos = trc->GetX();
+    }  
+    //
+    double drreal = r - TMath::Sqrt(xpos*xpos+trc->GetY()*trc->GetY());
+    if (!iter && ((dir>0 && drreal>kEpsilonR) || (dir<0 && drreal<-kEpsilonR)) ) { // apparently the phase changes by more than pi/2
+      iter++;
+      if (!trc->Rotate(trc->Phi())) {
+        printf("Failed to rotate to track local frame %f in the large phase change mode| ",trc->Phi()); trc->Print();
+        return kFALSE;
+      }
+      continue; // another iteration
+    }    
+    //  printf("Rtgt=%f Rreal=%f\n",r,rreal);
+    if (r>0.5) {
+      if (!trc->Rotate(trc->PhiPos())) {
+        printf("Failed to rotate to layer local frame %f | ",trc->PhiPos()); trc->Print();
+        return kFALSE;
+      }
+    }
+    else {
+      if (!trc->Rotate(trc->Phi())) {
+        printf("Failed to rotate to track local frame %f | ",trc->Phi()); trc->Print();
+        return kFALSE;
+      }
+    }
+    break;
+  }
   return kTRUE;
 }
 
