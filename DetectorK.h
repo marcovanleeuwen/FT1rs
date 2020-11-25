@@ -6,7 +6,6 @@
 #include <TList.h>
 #include <TGraph.h>
 #include <Riostream.h>
-#include <HistoManager.h>
 
 /***********************************************************
 
@@ -91,7 +90,7 @@ class TrackSol: public TObject
 class CylLayerK : public TNamed {
 public:
 
-  CylLayerK(char *name) : TNamed(name,name) {}
+  CylLayerK(const char *name) : TNamed(name,name) {}
   
   Float_t GetRadius()   const {return radius;}
   Float_t GetRadL()     const {return radL;}
@@ -114,26 +113,26 @@ class DetectorK : public TNamed {
  public:
   
   DetectorK();
-  DetectorK(char *name,char *title);
+  DetectorK(const char *name,const char *title);
   virtual ~DetectorK();
 
   enum {kNptBins = 50}; // less then 400 !!
  
-  void AddLayer(char *name, Float_t radius, Float_t radL, Float_t xrho=0., Float_t phiRes=999999, Float_t zRes=999999, Float_t eff=0.95);
-  void KillLayer(char *name);
-  void SetRadius(char *name, Float_t radius);
-  void SetRadiationLength(char *name, Float_t radL);
-  void SetResolution(char *name, Float_t phiRes=999999, Float_t zRes=999999);
-  void SetLayerEfficiency(char *name, Float_t eff=0.95);
-  void RemoveLayer(char *name);
-  CylLayerK* FindLayer(char* name) const;
+  void AddLayer(const char *name, Float_t radius, Float_t radL, Float_t xrho=0., Float_t phiRes=999999, Float_t zRes=999999, Float_t eff=0.95);
+  void KillLayer(const char *name);
+  void SetRadius(const char *name, Float_t radius);
+  void SetRadiationLength(const char *name, Float_t radL);
+  void SetResolution(const char *name, Float_t phiRes=999999, Float_t zRes=999999);
+  void SetLayerEfficiency(const char *name, Float_t eff=0.95);
+  void RemoveLayer(const char *name);
+  CylLayerK* FindLayer(const char* name) const;
   CylLayerK* FindLayer(double r, int mode) const;
   Int_t      FindLayerID(double r, int mode) const;
   //
-  Float_t GetRadius(char *name);
-  Float_t GetRadiationLength(char *name);
-  Float_t GetResolution(char *name, Int_t axis=0);
-  Float_t GetLayerEfficiency(char *name);
+  Float_t GetRadius(const char *name);
+  Float_t GetRadiationLength(const char *name);
+  Float_t GetResolution(const char *name, Int_t axis=0);
+  Float_t GetLayerEfficiency(const char *name);
 
   void PrintLayout(Bool_t full = kFALSE); 
   void PlotLayout(Int_t plotDead = kTRUE);

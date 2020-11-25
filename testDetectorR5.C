@@ -48,14 +48,12 @@ void testDetectorR5(float mass = 0.0005, float ptmin = 0.05) {
   its.AddLayer((char*)"ddd2",  3.5 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff); 
   its.AddLayer((char*)"ddd3",  5 ,    x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
   */
-  ///*
   its.AddLayer((char*)"ddd1",  1.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff); 
   its.AddLayer((char*)"ddd2",  2.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
   //its.AddLayer((char*)"bpipe", 2.9 ,  0.0014, 9.24e-02 ); // 500 mum Be
   its.AddLayer((char*)"ddd3",  3.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
-  // */
   its.AddLayer((char*)"ddd3a",  8,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
-  
+
   its.AddLayer((char*)"ddd4",  20.,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"ddd5",  25 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
 
@@ -66,7 +64,6 @@ void testDetectorR5(float mass = 0.0005, float ptmin = 0.05) {
   //  its.AddLayer((char*)"dddZ",  90. ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"dddY",  80.0 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"dddX",  100.0 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
-
   
   its.SetAtLeastHits(4);
   its.SetAtLeastCorr(4);
@@ -97,15 +94,16 @@ void testDetectorCurr() {
   its.PrintLayout();
   its.SolveViaBilloir(0);
  
-  its.MakeStandardPlots(0,2,1,kTRUE);
+  its.MakeStandardPlots(0,2,1,0);//kTRUE);
   //  return;
   its.AddTPC(0.1,0.1);
   its.SolveViaBilloir(0);
  
-  its.MakeStandardPlots(1,1,1,kTRUE);
+  its.MakeStandardPlots(1,1,1,0);//kTRUE);
   
 }
 
+/*
 void particleDependendResolution() { 
 // particle dependency on resolution
 
@@ -158,4 +156,4 @@ void particleDependendResolution() {
 
 
 }
-
+*/

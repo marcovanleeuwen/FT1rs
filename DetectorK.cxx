@@ -8,6 +8,7 @@
 #include <TCanvas.h>
 #include <TEllipse.h>
 #include <TText.h>
+#include <TFile.h>
 #include <TGraphErrors.h>
 
 #include "AliExternalTrackParam.h"
@@ -52,7 +53,7 @@ const double DetectorK::kPtMaxFix = 31.5;
 
 class ForwardLayer : public TNamed {
 public:
-  ForwardLayer(char *name) : TNamed(name,name) {}
+  ForwardLayer(const char *name) : TNamed(name,name) {}
   
   Float_t GetZ()         const {return zPos;}
   Float_t GetXRes()      const {return xRes;}
@@ -103,7 +104,7 @@ DetectorK::DetectorK()
   SetMaxSnp();
 }
 
-DetectorK::DetectorK(char *name, char *title)
+DetectorK::DetectorK(const char *name, const char *title)
   : TNamed(name,title),
     fNumberOfLayers(0),
     fNumberOfActiveLayers(0),
@@ -137,7 +138,7 @@ DetectorK::~DetectorK() { //
   //  delete fLayers;
 }
 
-void DetectorK::AddLayer(char *name, Float_t radius, Float_t radL, Float_t xrho, Float_t phiRes, Float_t zRes, Float_t eff) {
+void DetectorK::AddLayer(const char *name, Float_t radius, Float_t radL, Float_t xrho, Float_t phiRes, Float_t zRes, Float_t eff) {
   //
   // Add additional layer to the list of layers (ordered by radius)
   // 
@@ -190,7 +191,7 @@ void DetectorK::AddLayer(char *name, Float_t radius, Float_t radL, Float_t xrho,
 
 }
 
-void DetectorK::KillLayer(char *name) {
+void DetectorK::KillLayer(const char *name) {
   //
   // Marks layer as dead. Contribution only by Material Budget
   //
@@ -210,7 +211,7 @@ void DetectorK::KillLayer(char *name) {
   }
 }
 
-void DetectorK::SetRadius(char *name, Float_t radius) {
+void DetectorK::SetRadius(const char *name, Float_t radius) {
   //
   // Set layer radius [cm]
   //
@@ -233,7 +234,7 @@ void DetectorK::SetRadius(char *name, Float_t radius) {
   }
 }
 
-Float_t DetectorK::GetRadius(char *name) {
+Float_t DetectorK::GetRadius(const char *name) {
   //
   // Return layer radius [cm]
   //
@@ -247,7 +248,7 @@ Float_t DetectorK::GetRadius(char *name) {
   return 0;
 }
 
-void DetectorK::SetRadiationLength(char *name, Float_t radL) {
+void DetectorK::SetRadiationLength(const char *name, Float_t radL) {
   //
   // Set layer material [cm]
   //
@@ -260,7 +261,7 @@ void DetectorK::SetRadiationLength(char *name, Float_t radL) {
   }
 }
 
-Float_t DetectorK::GetRadiationLength(char *name) {
+Float_t DetectorK::GetRadiationLength(const char *name) {
   //
   // Return layer radius [cm]
   //
@@ -275,7 +276,7 @@ Float_t DetectorK::GetRadiationLength(char *name) {
   
 }
 
-void DetectorK::SetResolution(char *name, Float_t phiRes, Float_t zRes) {
+void DetectorK::SetResolution(const char *name, Float_t phiRes, Float_t zRes) {
   //
   // Set layer resolution in [cm]
   //
@@ -309,7 +310,7 @@ void DetectorK::SetResolution(char *name, Float_t phiRes, Float_t zRes) {
   }
 }
 
-Float_t DetectorK::GetResolution(char *name, Int_t axis) {
+Float_t DetectorK::GetResolution(const char *name, Int_t axis) {
   //
   // Return layer resolution in [cm]
   // axis = 0: resolution in rphi
@@ -327,7 +328,7 @@ Float_t DetectorK::GetResolution(char *name, Int_t axis) {
   return 0;
 }
 
-void DetectorK::SetLayerEfficiency(char *name, Float_t eff) {
+void DetectorK::SetLayerEfficiency(const char *name, Float_t eff) {
   //
   // Set layer efficnecy (prop that his is missed within this layer) 
   //
@@ -340,7 +341,7 @@ void DetectorK::SetLayerEfficiency(char *name, Float_t eff) {
   }
 }
 
-Float_t DetectorK::GetLayerEfficiency(char *name) {
+Float_t DetectorK::GetLayerEfficiency(const char *name) {
   //
   // Get layer efficnecy (prop that his is missed within this layer) 
   //
@@ -355,7 +356,7 @@ Float_t DetectorK::GetLayerEfficiency(char *name) {
   
 }
 
-void DetectorK::RemoveLayer(char *name) {
+void DetectorK::RemoveLayer(const char *name) {
   //
   // Removes a layer from the list
   //
@@ -377,7 +378,7 @@ void DetectorK::RemoveLayer(char *name) {
 }
 
 
-CylLayerK* DetectorK::FindLayer(char *name) const
+CylLayerK* DetectorK::FindLayer(const char *name) const
 {
   //
   // find layer by name
@@ -525,8 +526,8 @@ void DetectorK::AddTPC(Float_t phiResMean, Float_t zResMean, Int_t skip) {
   // skip=1: Use every padrow, skip=2: Signal in every 2nd padrow 
 
 
-  AddLayer((char*)"tpcIFC",   77.8, 0.01367); // Inner Field cage
-  AddLayer((char*)"tpcOFC",   254.0, 0.01367); // Outer Field cage
+  AddLayer("tpcIFC",   77.8, 0.01367); // Inner Field cage
+  AddLayer("tpcOFC",   254.0, 0.01367); // Outer Field cage
 
   // % Radiation Lengths ... Average per TPC row  (i.e. total/159 )
   const int kNPassiveBound = 2;
@@ -2313,13 +2314,11 @@ void DetectorK::MakeStandardPlots(Bool_t add, Int_t color, Int_t linewidth, cons
     pointResZ->Draw("L");    
   }
   if (outGr) {
-    HistoManager hm("",outGr);
-    hm.AddGraph(eff);
-    hm.AddGraph(momRes);
-    hm.AddGraph(pointResR);
-    hm.AddGraph(pointResZ);
-    hm.Write();
-    hm.Clear();
+    auto fout = TFile::Open(outGr,"RECREATE");
+    eff->Write();
+    momRes->Write();
+    pointResR->Write();
+    pointResZ->Write();
   }
   
 }
