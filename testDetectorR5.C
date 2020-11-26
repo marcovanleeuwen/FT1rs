@@ -4,12 +4,14 @@
 
 //void standardPlots() {
 
-void testDetectorR5(float mass = 0.0005, float ptmin = 0.05) {
+void testDetectorR5(float mass = 0.0005, float ptmin = 0.05, const char* outname = "grsav.root") {
   if (gClassTable->GetID("DetectorK")<0) {
     gROOT->ProcessLine(".L DetectorK.cxx+");
   }
   DetectorK its("ALICE","ITS");
   its.SetBField(0.2);
+  its.SetdNdEtaCent(400); //1300);
+  //its.SetMaxSnp(0.8);
   // new ideal Pixel properties?
   Double_t x0IB     = 0.0005;
   Double_t x0OB     = 0.005;
@@ -40,20 +42,28 @@ void testDetectorR5(float mass = 0.0005, float ptmin = 0.05) {
   */
   its.AddLayer((char*)"vertex",     0,     0); // dummy vertex for matrix calculation
 
-  its.AddLayer((char*)"bpipe",1.6, 0.0014, 9.24e-02 ); // 500 mum Be | nominal R5?
-  //its.AddLayer((char*)"bpipe",2.0.0, 0.0022, 1.478e-1); // 800 mum Be
 
   /*
   its.AddLayer((char*)"ddd1",  2.3 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff); 
   its.AddLayer((char*)"ddd2",  3.5 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff); 
   its.AddLayer((char*)"ddd3",  5 ,    x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
   */
+  /*
+  // test: add more inner layers
+  its.AddLayer((char*)"bpipe",0.3, 150/500*0.0014, 150/500*9.24e-02 ); // 500 mum Be | nominal R5? // check thickness
+  its.AddLayer((char*)"ddd0a",  0.5 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff); 
+  its.AddLayer((char*)"ddd0b",  1.2 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
+  */
+  /*
+  // EoI geometry
+  //its.AddLayer((char*)"bpipe",1.6, 0.0014, 9.24e-02 ); // 500 mum Be | nominal R5?
+  //its.AddLayer((char*)"bpipe",2.0.0, 0.0022, 1.478e-1); // 800 mum Be
   its.AddLayer((char*)"ddd1",  1.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff); 
   its.AddLayer((char*)"ddd2",  2.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
   //its.AddLayer((char*)"bpipe", 2.9 ,  0.0014, 9.24e-02 ); // 500 mum Be
   its.AddLayer((char*)"ddd3",  3.8 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
   its.AddLayer((char*)"ddd3a",  8,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
-
+  
   its.AddLayer((char*)"ddd4",  20.,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"ddd5",  25 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
 
@@ -64,6 +74,47 @@ void testDetectorR5(float mass = 0.0005, float ptmin = 0.05) {
   //  its.AddLayer((char*)"dddZ",  90. ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"dddY",  80.0 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
   its.AddLayer((char*)"dddX",  100.0 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  */
+
+  // ALICE 3 draft geometry
+
+  its.AddLayer((char*)"bpipe",0.3, 150/500*0.0014, 150/500*9.24e-02 ); // 500 mum Be | nominal R5? // check thickness
+  //its.AddLayer((char*)"bpipe",2.0.0, 0.0022, 1.478e-1); // 800 mum Be
+  its.AddLayer((char*)"ddd1",  0.5 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff); 
+  its.AddLayer((char*)"ddd2",  1.2 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
+  //its.AddLayer((char*)"bpipe", 2.9 ,  0.0014, 9.24e-02 ); // 500 mum Be
+  its.AddLayer((char*)"ddd3",  2.5 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
+  its.AddLayer((char*)"ddd3a", 4.0,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  
+  its.AddLayer((char*)"ddd4",  10,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff);  // 11
+  its.AddLayer((char*)"ddd4a", 18,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff);  // 18 
+  its.AddLayer((char*)"ddd5",  28 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+
+  its.AddLayer((char*)"ddd7",  39. ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"ddd8",  50. ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  
+  its.AddLayer((char*)"dddY",  75.0 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"dddX",  100.0 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+
+  // 'optimised'
+  /*
+  its.AddLayer((char*)"bpipe",0.3, 150/500*0.0014, 150/500*9.24e-02 ); // 500 mum Be | nominal R5? // check thickness
+  //its.AddLayer((char*)"bpipe",2.0.0, 0.0022, 1.478e-1); // 800 mum Be
+  its.AddLayer((char*)"ddd1",  0.5 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff); 
+  its.AddLayer((char*)"ddd2",  1.2 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
+  //its.AddLayer((char*)"bpipe", 2.9 ,  0.0014, 9.24e-02 ); // 500 mum Be
+  its.AddLayer((char*)"ddd3",  2.5 ,  x0IB, xrhoIB,  resRPhiIB, resZIB,eff);
+  its.AddLayer((char*)"ddd3a",  3.5,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  
+  its.AddLayer((char*)"ddd4",  15,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"ddd5",  18 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+
+  its.AddLayer((char*)"ddd7",  40 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"ddd8",  50. ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  
+  its.AddLayer((char*)"dddY",  75.0 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  its.AddLayer((char*)"dddX",  100.0 ,  x0OB, xrhoOB,  resRPhiOB, resZOB,eff); 
+  */
   
   its.SetAtLeastHits(4);
   its.SetAtLeastCorr(4);
@@ -71,12 +122,12 @@ void testDetectorR5(float mass = 0.0005, float ptmin = 0.05) {
   //
   its.SetAvgRapidity(0.5);
   its.SetParticleMass(mass);
-  its.SetMinRadTrack(55);//100.);
+  its.SetMinRadTrack(30); //55);//100.);
   //
   its.PrintLayout();
-  its.SolveViaBilloir(0.2, ptmin);
+  its.SolveViaBilloir(0.095, ptmin);
  
-  its.MakeStandardPlots(0,2,1, "grsav.root");
+  its.MakeStandardPlots(0,2,1, outname);
   //  return;
   //  its.AddTPC(0.1,0.1);
   //  its.AddTRD(0.02,2.5);

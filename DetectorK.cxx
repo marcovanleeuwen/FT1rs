@@ -1388,6 +1388,8 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
 
 	}
       }
+      if (print == 1 && fTransMomenta[i] >= selPt && printOnce == 1)
+	  printf("Total efficiency product: %.4g\n", fEfficiency[i]);
       if (fAtLeastCorr != -1 || fAtLeastHits != -1 ) {
 	// Calculate probabilities from Kombinatorics tree ...
 	TMatrixD *probKombPP = (TMatrixD*)probKombArr[iLayActive-3];
@@ -1398,7 +1400,8 @@ void DetectorK::SolveViaBilloir(Double_t selPt, double ptmin) {
       }
 
       if (print == 1 && fTransMomenta[i] >= selPt && printOnce == 1) {
-	if (pt>0.25) printOnce = 0 ;
+	printf("\n=== Final efficiency: %.4g\n",fEfficiency[i]);
+	printOnce = 0 ;
 	printf("\n")  ;
       }
     }      
